@@ -1,0 +1,2485 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دعوة زفاف وتأكيد حضور</title>
+
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Playfair+Display:wght@500;600;700&display=swap');
+
+:root{
+--ink:#4b3134;
+--rose:#a45a68;
+--wine:#743b48;
+--blush:#f8eceb;
+--ivory:#fffaf5;
+--gold:#b28a54;
+--line:#ead5d0;
+--success:#537a62;
+--danger:#a44250;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:"Alegreya Sans","Tahoma",sans-serif;
+color:var(--ink);
+background:#f7ece7;
+}
+
+.page-shell{
+width:100%;
+min-height:100vh;
+position:relative;
+overflow:hidden;
+background:
+radial-gradient(circle at 8% 7%,rgba(255,255,255,.9) 0 2px,transparent 3px),
+radial-gradient(circle at 92% 19%,rgba(255,255,255,.75) 0 2px,transparent 3px),
+linear-gradient(135deg,#f7e9e5 0%,#fffaf5 48%,#f2e1dd 100%);
+}
+
+.page-shell::before,
+.page-shell::after{
+content:"✦";
+position:absolute;
+color:rgba(178,138,84,.26);
+font-size:9rem;
+line-height:1;
+pointer-events:none;
+}
+
+.page-shell::before{
+top:2rem;
+right:-2.5rem;
+transform:rotate(18deg);
+}
+
+.page-shell::after{
+bottom:3rem;
+left:-2rem;
+transform:rotate(-14deg);
+}
+
+.floral-rule{
+display:flex;
+align-items:center;
+gap:.75rem;
+color:var(--gold);
+justify-content:center;
+letter-spacing:.3rem;
+}
+
+.floral-rule::before,
+.floral-rule::after{
+content:"";
+width:3.5rem;
+height:1px;
+background:linear-gradient(to left,transparent,var(--gold));
+}
+
+.floral-rule::after{
+transform:scaleX(-1);
+}
+
+.ornament{
+border:1px solid rgba(178,138,84,.5);
+border-radius:999px;
+width:3rem;
+height:3rem;
+display:grid;
+place-items:center;
+color:var(--gold);
+}
+
+.invite-card,
+.soft-card{
+box-shadow:0 24px 70px rgba(101,57,62,.13);
+border:1px solid rgba(178,138,84,.24);
+}
+
+.soft-card{
+box-shadow:0 12px 36px rgba(101,57,62,.08);
+}
+
+.view{
+display:none;
+}
+
+.view.active{
+display:block;
+animation:fadeUp .45s ease both;
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(18px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.attendance-choice input:checked+label{
+border-color:var(--rose);
+background:#f9e7e8;
+color:var(--wine);
+box-shadow:0 8px 18px rgba(164,90,104,.14);
+}
+
+button:disabled{
+opacity:.6;
+cursor:not-allowed;
+}
+
+.guest-row{
+border-bottom:1px solid #f0dfda;
+}
+
+.guest-row:last-child{
+border-bottom:0;
+}
+
+.ticket-frame{
+position:relative;
+overflow:hidden;
+border:1px dashed rgba(178,138,84,.75);
+}
+
+.ticket-frame::after,
+.ticket-frame::before{
+content:"";
+position:absolute;
+width:28px;
+height:28px;
+border-radius:50%;
+background:#f7ece7;
+top:55%;
+transform:translateY(-50%);
+}
+
+.ticket-frame::before{
+right:-14px;
+}
+
+.ticket-frame::after{
+left:-14px;
+}
+
+#qr-code img,
+#qr-code canvas{
+margin:0 auto;
+border-radius:10px;
+}
+
+#scanner-video{
+max-height:430px;
+object-fit:cover;
+}
+
+.scanner-box{
+position:relative;
+}
+
+.scanner-frame{
+position:absolute;
+inset:15%;
+border:3px solid rgba(255,255,255,.9);
+border-radius:18px;
+pointer-events:none;
+box-shadow:0 0 0 9999px rgba(0,0,0,.15);
+}
+
+@media print{
+body{
+background:#fff!important;
+}
+
+.no-print{
+display:none!important;
+}
+
+#ticket-view{
+display:block!important;
+padding:0!important;
+}
+
+#ticket-view>div{
+max-width:680px!important;
+margin:0 auto!important;
+}
+
+.ticket-frame{
+box-shadow:none!important;
+}
+}
+
+/* ===== نوافذ التنبيه المنبثقة ===== */
+.app-modal{
+  position:fixed; inset:0; z-index:9999; display:none; place-items:center;
+  padding:20px; background:rgba(75,49,52,.42); backdrop-filter:blur(5px);
+}
+.app-modal.show{display:grid; animation:modalIn .2s ease both}
+.app-modal-card{
+  width:min(430px,100%); background:#fffaf5; border:1px solid rgba(178,138,84,.35);
+  border-radius:26px; padding:28px 22px; text-align:center;
+  box-shadow:0 25px 80px rgba(75,49,52,.25);
+}
+.app-modal-icon{
+  width:68px;height:68px;margin:0 auto 14px;border-radius:50%;
+  display:grid;place-items:center;font-size:31px;background:#e7f1e9;color:#3e674d;
+}
+.app-modal.error .app-modal-icon{background:#f9e4e6;color:#a44250}
+.app-modal-card h3{margin:0;color:#4b3134;font-size:25px}
+.app-modal-card p{margin:9px 0 20px;color:#715a5a;font-size:18px;line-height:1.7}
+.app-modal-close{
+  border:0;border-radius:12px;padding:11px 28px;background:#743b48;color:#fff;
+  font:inherit;font-size:17px;font-weight:700;cursor:pointer
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+
+</style>
+</head>
+
+<body>
+
+<div class="page-shell">
+
+<header class="relative z-10 w-full px-5 pt-7 sm:px-8 no-print">
+<div class="mx-auto flex max-w-5xl items-center justify-between">
+
+<div class="flex items-center gap-3">
+<div class="ornament">
+<i data-lucide="heart" class="h-4 w-4"></i>
+</div>
+
+<p class="m-0 text-lg font-bold tracking-wide"
+style="color:#743b48;font-size:20px">
+فرحة العمر
+</p>
+</div>
+
+<button id="host-toggle"
+type="button"
+class="rounded-full border px-4 py-2 text-base font-bold transition hover:-translate-y-0.5"
+style="background:#fffaf5;color:#743b48">
+لوحة المضيف
+</button>
+
+</div>
+</header>
+
+
+<main class="relative z-10 w-full px-5 pb-12 sm:px-8">
+
+<!-- =========================
+     الصفحة الرئيسية
+========================= -->
+
+<section id="welcome-view"
+class="view active mx-auto max-w-5xl pt-8 sm:pt-12">
+
+<div class="invite-card overflow-hidden rounded-[2rem]"
+style="background:#fffaf5">
+
+<div class="grid md:grid-cols-2">
+
+<div class="relative min-h-[290px] md:min-h-full">
+
+<img
+loading="lazy"
+class="absolute inset-0 h-full w-full object-cover"
+src="https://images.pexels.com/photos/169190/pexels-photo-169190.jpeg?auto=compress&cs=tinysrgb&w=1280"
+alt="طاولة زفاف مزينة بالورود">
+
+<div class="absolute inset-0 bg-gradient-to-t from-[#4b3134]/55 via-transparent to-transparent"></div>
+
+<div class="absolute bottom-7 right-7 left-7 text-white">
+<p class="text-lg font-bold">
+بكل الحب، ننتظر مشاركتكم فرحتنا
+</p>
+</div>
+
+</div>
+
+
+<div class="flex flex-col justify-center bg-[#fffaf5] px-7 py-10 text-center sm:px-12">
+
+<div class="floral-rule mb-5">
+<span>❦</span>
+</div>
+
+<p class="mb-3 text-lg font-bold tracking-[.18em]"
+style="color:#b28a54">
+دعوة زفاف
+</p>
+
+<h1
+class="m-0 font-['Playfair_Display'] font-semibold leading-tight"
+style="color:#4b3134;font-size:32px">
+
+يسعدنا دعوتكم لمشاركتنا أجمل لحظات العمر
+
+</h1>
+
+<p
+class="mx-auto mt-5 max-w-md text-xl leading-relaxed"
+style="color:#715a5a">
+
+بقلوبٍ تملؤها السعادة، نحتفل معاً ببدء فصل جديد من الحكاية.
+
+</p>
+
+<div class="my-7">
+
+<p
+class="m-0 font-['Playfair_Display'] font-semibold"
+style="color:#743b48;font-size:34px">
+
+عبدالله & نورة
+
+</p>
+
+</div>
+
+
+<div class="grid gap-3 text-right sm:grid-cols-2">
+
+<div class="rounded-2xl px-4 py-4"
+style="background:#f8eceb">
+
+<div class="flex items-center gap-3">
+
+<i data-lucide="calendar-heart"
+class="h-5 w-5"
+style="color:#b28a54"></i>
+
+<div>
+
+<p class="m-0 text-base font-bold"
+style="color:#a45a68">
+
+موعد الحفل
+
+</p>
+
+<p class="m-0 text-lg"
+style="color:#4b3134">
+
+الجمعة، 18 ديسمبر 2026
+
+</p>
+
+</div>
+
+</div>
+</div>
+
+
+<div class="rounded-2xl px-4 py-4"
+style="background:#f8eceb">
+
+<div class="flex items-center gap-3">
+
+<i data-lucide="map-pin"
+class="h-5 w-5"
+style="color:#b28a54"></i>
+
+<div>
+
+<p class="m-0 text-base font-bold"
+style="color:#a45a68">
+
+مكان الحفل
+
+</p>
+
+<p class="m-0 text-lg"
+style="color:#4b3134">
+
+قاعة ليالي الرياض
+
+</p>
+
+</div>
+
+</div>
+</div>
+
+</div>
+
+
+<button
+id="start-rsvp"
+type="button"
+class="mt-8 w-full rounded-xl px-5 py-4 text-xl font-bold shadow-lg transition hover:-translate-y-1"
+style="background:#743b48;color:white">
+
+تأكيد الحضور
+
+</button>
+
+</div>
+</div>
+</div>
+</section>
+
+
+<!-- =========================
+     نموذج التسجيل
+========================= -->
+
+<section
+id="rsvp-view"
+class="view mx-auto max-w-xl pt-10">
+
+<div
+class="soft-card rounded-[2rem] px-6 py-9 sm:px-10"
+style="background:#fffaf5">
+
+<button
+id="back-welcome"
+type="button"
+class="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-bold"
+style="background:#f5e7e2;color:#743b48">
+
+العودة إلى الدعوة
+
+</button>
+
+
+<div class="text-center">
+
+<div class="ornament mx-auto">
+
+<i data-lucide="mail-heart" class="h-5 w-5"></i>
+
+</div>
+
+<h2
+class="mt-4 font-['Playfair_Display'] font-semibold"
+style="color:#4b3134;font-size:24px">
+
+نود معرفة مشاركتكم
+
+</h2>
+
+<p
+class="mx-auto mt-2 max-w-md text-lg leading-relaxed"
+style="color:#715a5a">
+
+يرجى تعبئة بياناتك لتأكيد حضورك وإصدار تذكرتك الشخصية.
+
+</p>
+
+</div>
+
+
+<form id="rsvp-form" class="mt-7 space-y-5" novalidate>
+
+<div>
+
+<label
+for="guest-name"
+class="mb-2 block text-lg font-bold">
+
+الاسم الكامل
+
+</label>
+
+<input
+id="guest-name"
+class="w-full rounded-xl border border-[#e4cfc9] bg-white px-4 py-3 text-lg outline-none"
+type="text"
+autocomplete="name"
+placeholder="اكتب اسمك الكامل">
+
+<p
+id="name-error"
+class="mt-1 hidden text-base font-bold text-[#a44250]">
+</p>
+
+</div>
+
+
+<fieldset>
+
+<legend class="mb-3 text-lg font-bold">
+
+هل ستتمكن من الحضور؟
+
+</legend>
+
+<div class="grid gap-3 sm:grid-cols-2">
+
+<div class="attendance-choice">
+
+<input
+class="sr-only"
+id="attending"
+name="attendance"
+type="radio"
+value="attending">
+
+<label
+for="attending"
+class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-[#e6d5d0] bg-white px-4 py-4 text-lg font-bold transition">
+
+<i data-lucide="heart-handshake" class="h-5 w-5"></i>
+
+<span>سأحضر</span>
+
+</label>
+
+</div>
+
+
+<div class="attendance-choice">
+
+<input
+class="sr-only"
+id="declined"
+name="attendance"
+type="radio"
+value="declined">
+
+<label
+for="declined"
+class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-[#e6d5d0] bg-white px-4 py-4 text-lg font-bold transition">
+
+<i data-lucide="heart-off" class="h-5 w-5"></i>
+
+<span>لن أحضر</span>
+
+</label>
+
+</div>
+
+</div>
+
+<p
+id="attendance-error"
+class="mt-2 hidden text-base font-bold text-[#a44250]">
+</p>
+
+</fieldset>
+
+
+<p
+id="form-message"
+class="hidden rounded-xl px-4 py-3 text-center text-lg font-bold">
+</p>
+
+
+<button
+id="submit-rsvp"
+type="submit"
+class="w-full rounded-xl px-5 py-4 text-xl font-bold shadow-lg transition hover:-translate-y-1"
+style="background:#743b48;color:white">
+
+إرسال التأكيد
+
+</button>
+
+</form>
+
+</div>
+</section>
+
+
+<!-- =========================
+     الاعتذار
+========================= -->
+
+<section
+id="declined-view"
+class="view mx-auto max-w-xl pt-12 text-center">
+
+<div
+class="soft-card rounded-[2rem] px-7 py-12"
+style="background:#fffaf5">
+
+<div class="ornament mx-auto">
+
+<i data-lucide="flower-2" class="h-5 w-5"></i>
+
+</div>
+
+<h2
+class="mt-5 font-['Playfair_Display'] font-semibold"
+style="color:#4b3134;font-size:24px">
+
+شكراً لإبلاغنا
+
+</h2>
+
+<p
+class="mx-auto mt-4 max-w-md text-xl leading-relaxed"
+style="color:#715a5a">
+
+تم تسجيل اعتذارك بكل محبة. سنفتقد حضورك ونتمنى لك أياماً مليئة بالفرح.
+
+</p>
+
+<button
+id="declined-another"
+type="button"
+class="mt-8 rounded-xl px-6 py-3 text-lg font-bold"
+style="background:#743b48;color:white">
+
+تسجيل ضيف آخر
+
+</button>
+
+</div>
+</section>
+
+
+<!-- =========================
+     التذكرة + QR
+========================= -->
+
+<section
+id="ticket-view"
+class="view mx-auto max-w-2xl pt-10">
+
+<div class="text-center no-print">
+
+<p
+id="ticket-success"
+class="mb-5 rounded-xl bg-[#e7f1e9] px-5 py-3 text-lg font-bold text-[#3e674d]">
+</p>
+
+</div>
+
+
+<div
+class="ticket-frame rounded-[2rem] bg-[#fffaf5] shadow-2xl">
+
+<div
+class="border-b border-dashed border-[#d6b987] px-7 py-7 text-center sm:px-12">
+
+<div class="floral-rule">
+<span>❦</span>
+</div>
+
+<p
+class="mt-4 text-lg font-bold tracking-[.16em]"
+style="color:#b28a54">
+
+تذكرة حضور شخصية
+
+</p>
+
+<h2
+class="mt-1 font-['Playfair_Display'] font-semibold"
+style="color:#4b3134;font-size:24px">
+
+أهلاً بك في فرحتنا
+
+</h2>
+
+</div>
+
+
+<div
+class="grid items-center gap-8 px-7 py-8 sm:grid-cols-[1fr_auto] sm:px-12">
+
+<div class="text-center sm:text-right">
+
+<p
+class="m-0 text-lg"
+style="color:#715a5a">
+
+هذه التذكرة باسم
+
+</p>
+
+<p
+id="ticket-guest-name"
+class="mt-1 text-3xl font-bold"
+style="color:#743b48">
+</p>
+
+<p
+class="mt-5 text-lg leading-relaxed"
+style="color:#715a5a">
+
+ننتظر حضورك بكل شوق. يرجى إبراز رمز QR عند الوصول إلى الحفل.
+
+</p>
+
+
+<div
+class="mt-6 rounded-xl bg-[#f5e7e2] px-4 py-3">
+
+<p
+class="m-0 text-base font-bold"
+style="color:#a45a68">
+
+معرّف التذكرة
+
+</p>
+
+<p
+id="ticket-id-display"
+class="mt-1 break-all font-mono text-base font-bold tracking-wider"
+style="color:#743b48">
+</p>
+
+</div>
+
+</div>
+
+
+<div
+class="mx-auto rounded-2xl border border-[#e1c69b] bg-white p-4 shadow-sm">
+
+<div
+id="qr-code"
+aria-label="رمز QR لتذكرة الضيف">
+</div>
+
+</div>
+
+</div>
+
+
+<div class="bg-[#f7ece7] px-7 py-4 text-center">
+
+<p
+class="m-0 text-base"
+style="color:#8a6d6a">
+
+رمز QR يحتوي على معرّف التذكرة فقط لحماية خصوصية الضيف.
+
+</p>
+
+</div>
+
+</div>
+
+
+<div class="no-print mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+
+<button
+id="print-ticket"
+type="button"
+class="rounded-xl px-6 py-3 text-lg font-bold"
+style="background:#743b48;color:white">
+
+طباعة التذكرة
+
+</button>
+
+
+<button
+id="ticket-another"
+type="button"
+class="rounded-xl px-6 py-3 text-lg font-bold"
+style="background:#f5e7e2;color:#743b48">
+
+العودة لتسجيل ضيف آخر
+
+</button>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     لوحة المضيف
+========================= -->
+
+<aside
+id="host-panel"
+class="no-print mx-auto hidden max-w-5xl pt-10">
+
+<div
+class="soft-card rounded-[2rem] px-6 py-8 sm:px-9"
+style="background:#fffaf5">
+
+<div
+class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+
+<div>
+
+<h2
+class="m-0 font-['Playfair_Display'] font-semibold"
+style="font-size:24px">
+
+لوحة المضيف
+
+</h2>
+
+<p
+class="mt-1 text-lg"
+style="color:#715a5a">
+
+ابحث عن الضيوف أو سجّل دخولهم باستخدام معرّف التذكرة.
+
+</p>
+
+</div>
+
+<span
+id="guest-count"
+class="rounded-full bg-[#f6e5e5] px-4 py-2 text-lg font-bold"
+style="color:#743b48">
+
+0 تسجيل
+
+</span>
+
+</div>
+
+
+<div class="mt-6 grid gap-4 md:grid-cols-[1fr_auto]">
+
+<div>
+
+<label
+for="guest-search"
+class="mb-2 block text-lg font-bold">
+
+البحث في التسجيلات
+
+</label>
+
+<input
+id="guest-search"
+class="w-full rounded-xl border border-[#e4cfc9] bg-white px-4 py-3 text-lg outline-none"
+type="search"
+placeholder="ابحث بالاسم أو معرّف التذكرة">
+
+</div>
+
+
+<div class="md:self-end">
+
+<button
+id="refresh-records"
+type="button"
+class="w-full rounded-xl px-5 py-3 text-lg font-bold"
+style="background:#f5e7e2;color:#743b48">
+
+تحديث العرض
+
+</button>
+
+</div>
+
+</div>
+
+
+<button
+id="scanner-toggle"
+type="button"
+class="mt-4 w-full rounded-xl px-5 py-3 text-lg font-bold"
+style="background:#743b48;color:white">
+
+ماسح التذاكر
+
+</button>
+
+
+<section
+id="ticket-scanner"
+class="mt-4 hidden rounded-2xl border border-[#ead8d2] bg-[#f8efea] p-4">
+
+<h3
+class="m-0 text-2xl font-bold">
+
+ماسح التذاكر
+
+</h3>
+
+<p class="mt-2 text-lg">
+
+اسمح باستخدام الكاميرا لمسح رمز QR، أو أدخل معرّف التذكرة يدوياً.
+
+</p>
+
+
+<div class="scanner-box">
+
+<video
+id="scanner-video"
+class="mt-4 hidden w-full rounded-xl bg-[#4b3134]"
+playsinline>
+</video>
+
+<div
+id="scanner-frame"
+class="scanner-frame hidden">
+</div>
+
+</div>
+
+
+<p
+id="scanner-status"
+class="mt-3 rounded-xl bg-white px-4 py-3 text-center text-base">
+
+اضغط بدء الكاميرا لمنح الإذن.
+
+</p>
+
+
+<div class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+
+<input
+id="scanner-ticket-id"
+class="w-full rounded-xl border border-[#e4cfc9] bg-white px-4 py-3 text-lg"
+type="text"
+placeholder="معرّف التذكرة">
+
+<button
+id="scanner-manual"
+type="button"
+class="rounded-xl px-5 py-3 text-lg font-bold"
+style="background:#743b48;color:white">
+
+فحص المعرّف
+
+</button>
+
+</div>
+
+
+<div class="mt-3 flex flex-wrap gap-3">
+
+<button
+id="scanner-start"
+type="button"
+class="rounded-xl px-5 py-3 text-lg font-bold"
+style="background:#537a62;color:white">
+
+بدء الكاميرا
+
+</button>
+
+<button
+id="scanner-stop"
+type="button"
+class="hidden rounded-xl px-5 py-3 text-lg font-bold"
+style="background:#a44250;color:white">
+
+إيقاف الكاميرا
+
+</button>
+
+<button
+id="scanner-new"
+type="button"
+class="hidden rounded-xl px-5 py-3 text-lg font-bold"
+style="background:#743b48;color:white">
+
+مسح تذكرة جديدة
+
+</button>
+
+</div>
+
+
+<div
+id="scanner-result"
+class="mt-4 hidden rounded-2xl px-5 py-5 text-center"
+role="status">
+</div>
+
+</section>
+
+
+<!-- تسجيل دخول يدوي -->
+
+<form
+id="checkin-form"
+class="mt-5 grid gap-3 rounded-2xl bg-[#f8efea] p-4 sm:grid-cols-[1fr_auto]">
+
+<div>
+
+<label
+for="checkin-code"
+class="mb-1 block text-base font-bold">
+
+إدخال معرّف التذكرة عند الوصول
+
+</label>
+
+<input
+id="checkin-code"
+class="w-full rounded-xl border border-[#e4cfc9] bg-white px-4 py-3 text-lg outline-none"
+type="text"
+placeholder="مثال: WED-XXXXXXXX">
+
+</div>
+
+
+<button
+id="checkin-submit"
+type="submit"
+class="self-end rounded-xl px-5 py-3 text-lg font-bold"
+style="background:#537a62;color:white">
+
+تسجيل الدخول
+
+</button>
+
+</form>
+
+
+<p
+id="host-message"
+class="mt-3 hidden rounded-xl px-4 py-3 text-center text-lg font-bold">
+</p>
+
+
+<div
+id="guest-list"
+class="mt-6 overflow-hidden rounded-2xl border border-[#ead8d2] bg-white"
+aria-live="polite">
+
+<div
+id="host-empty"
+class="px-5 py-8 text-center text-lg"
+style="color:#8a6d6a">
+
+لا توجد تسجيلات مطابقة للبحث حالياً.
+
+</div>
+
+</div>
+
+</div>
+</aside>
+
+</main>
+</div>
+
+
+<!-- =========================
+     قالب صف الضيف
+========================= -->
+
+<template id="guest-row-template">
+
+<article
+class="guest-row flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+
+<div>
+
+<p
+class="guest-row-name m-0 text-xl font-bold">
+</p>
+
+<p
+class="guest-row-meta mt-1 text-base"
+style="color:#715a5a">
+</p>
+
+</div>
+
+
+<div class="flex items-center gap-2">
+
+<span
+class="guest-row-status rounded-full px-3 py-1 text-base font-bold">
+</span>
+
+<button
+type="button"
+class="guest-row-checkin rounded-lg px-3 py-2 text-base font-bold"
+style="background:#537a62;color:white">
+</button>
+
+</div>
+
+</article>
+
+</template>
+
+
+<script>
+
+/* =====================================
+   قاعدة البيانات المحلية
+===================================== */
+
+const STORAGE_KEY = "wedding_guest_records_v2";
+
+const state = {
+records: [],
+currentTicket: null,
+firebaseReady: false,
+db: null,
+unsubscribe: null
+};
+
+/* ضعي بيانات Firebase الخاصة بمشروعك هنا بعد إنشائه */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+
+/* =====================================
+   الصفحات
+===================================== */
+
+const views = [
+"welcome-view",
+"rsvp-view",
+"declined-view",
+"ticket-view"
+];
+
+
+function showView(viewId){
+
+views.forEach(id=>{
+const el=document.getElementById(id);
+
+if(el){
+el.classList.toggle("active",id===viewId);
+}
+});
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+
+/* =====================================
+   الرسائل
+===================================== */
+
+function setMessage(element,message,kind){
+
+element.textContent=message;
+
+element.className=
+"rounded-xl px-4 py-3 text-center text-lg font-bold";
+
+if(kind==="error"){
+
+element.classList.add(
+"bg-[#f9e4e6]",
+"text-[#a44250]"
+);
+
+}else{
+
+element.classList.add(
+"bg-[#e7f1e9]",
+"text-[#3e674d]"
+);
+
+}
+
+}
+
+
+function displayError(id,message){
+
+const el=document.getElementById(id);
+
+el.textContent=message;
+el.classList.remove("hidden");
+
+}
+
+
+function clearFormErrors(){
+
+[
+"name-error",
+"attendance-error"
+].forEach(id=>{
+
+const el=document.getElementById(id);
+
+el.textContent="";
+el.classList.add("hidden");
+
+});
+
+document
+.getElementById("form-message")
+.classList.add("hidden");
+
+}
+
+
+/* =====================================
+   الاسم
+===================================== */
+
+function normalizeName(value){
+
+return value.trim().replace(/\s+/g," ");
+
+}
+
+
+function isSaudiPhone(value){
+  return /^(05\\d{8}|\\+9665\\d{8})$/.test(value.replace(/\\s+/g,""));
+}
+
+/* =====================================
+   رقم التذكرة
+===================================== */
+
+function generateTicketId(){
+
+const values=new Uint8Array(12);
+
+crypto.getRandomValues(values);
+
+return "WED-"+Array.from(
+values,
+value=>value.toString(16).padStart(2,"0")
+).join("").toUpperCase();
+
+}
+
+
+/* =====================================
+   الوقت
+===================================== */
+
+function formatDate(iso){
+
+try{
+
+return new Intl.DateTimeFormat(
+"ar-SA",
+{
+dateStyle:"medium",
+timeStyle:"short"
+}
+).format(new Date(iso));
+
+}catch{
+
+return iso;
+
+}
+
+}
+
+
+/* =====================================
+   الحضور
+===================================== */
+
+function attendanceText(status){
+
+return status==="attending"
+?"سوف أحضر"
+:"اعتذار عن الحضور";
+
+}
+
+
+/* =====================================
+   التخزين
+===================================== */
+
+
+function showPopup(title,text,type="success"){
+  const modal=document.getElementById("app-modal");
+  if(!modal)return;
+  const icon=document.getElementById("app-modal-icon");
+  document.getElementById("app-modal-title").textContent=title;
+  document.getElementById("app-modal-text").textContent=text;
+  modal.classList.toggle("error",type==="error");
+  icon.textContent=type==="error"?"!":"✓";
+  modal.classList.add("show");
+}
+function closePopup(){
+  document.getElementById("app-modal").classList.remove("show");
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const closeBtn=document.getElementById("app-modal-close");
+  const modal=document.getElementById("app-modal");
+  if(closeBtn) closeBtn.addEventListener("click",closePopup);
+  if(modal) modal.addEventListener("click",e=>{
+    if(e.target.id==="app-modal") closePopup();
+  });
+});
+
+async function initSharedDatabase(){
+  if(!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) return;
+  try{
+    const appMod = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js");
+    const dbMod = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+    const app = appMod.initializeApp(FIREBASE_CONFIG);
+    state.db = dbMod.getFirestore(app);
+    state.firebaseReady = true;
+    state.unsubscribe = dbMod.onSnapshot(
+      dbMod.collection(state.db,"wedding_guests"),
+      snap=>{
+        state.records = snap.docs.map(d=>({id:d.id,...d.data()}));
+        localStorage.setItem(STORAGE_KEY,JSON.stringify(state.records));
+        renderGuestList();
+      },
+      err=>console.error("Firestore listener:",err)
+    );
+  }catch(err){
+    console.error("تعذر تفعيل قاعدة البيانات المشتركة:",err);
+    state.firebaseReady=false;
+  }
+}
+
+async function addSharedRecord(record){
+  if(!state.firebaseReady) return false;
+  const mod = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+  await mod.setDoc(mod.doc(state.db,"wedding_guests",record.id),record);
+  return true;
+}
+
+async function updateSharedRecord(record){
+  if(!state.firebaseReady) return false;
+  const mod = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+  await mod.setDoc(mod.doc(state.db,"wedding_guests",record.id),record,{merge:true});
+  return true;
+}
+
+function loadRecords(){
+
+try{
+
+const saved=localStorage.getItem(STORAGE_KEY);
+
+state.records=saved
+?JSON.parse(saved)
+:[];
+
+}catch{
+
+state.records=[];
+
+}
+
+renderGuestList();
+
+}
+
+
+function saveRecords(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state.records));
+  renderGuestList();
+}
+
+
+/* =====================================
+   التذكرة والـQR
+===================================== */
+
+function renderTicket(record,reused=false){
+
+state.currentTicket=record;
+
+document.getElementById(
+"ticket-guest-name"
+).textContent=record.guest_name;
+
+document.getElementById(
+"ticket-id-display"
+).textContent=record.ticket_id;
+
+
+document.getElementById(
+"ticket-success"
+).textContent=reused
+?"وجدنا تأكيد حضورك السابق. هذه تذكرتك الشخصية المحفوظة."
+:"تم تأكيد حضورك بنجاح. احتفظ بهذه التذكرة عند الوصول.";
+
+
+const qr=document.getElementById("qr-code");
+
+qr.replaceChildren();
+
+
+new QRCode(qr,{
+
+text:record.ticket_id,
+
+width:164,
+
+height:164,
+
+colorDark:"#4b3134",
+
+colorLight:"#ffffff",
+
+correctLevel:QRCode.CorrectLevel.H
+
+});
+
+
+showView("ticket-view");
+
+}
+
+
+/* =====================================
+   قائمة الضيوف
+===================================== */
+
+function renderGuestList(){
+
+const list=document.getElementById("guest-list");
+
+const empty=document.getElementById("host-empty");
+
+const query=document
+.getElementById("guest-search")
+.value
+.trim()
+.toLowerCase();
+
+
+const filtered=state.records.filter(record=>{
+
+return(
+record.guest_name.toLowerCase().includes(query) ||
+record.ticket_id.toLowerCase().includes(query)
+);
+
+});
+
+
+document.getElementById(
+"guest-count"
+).textContent=state.records.length+" تسجيل";
+
+
+list.querySelectorAll(
+"[data-record-id]"
+).forEach(el=>el.remove());
+
+
+if(filtered.length===0){
+
+empty.classList.remove("hidden");
+
+}else{
+
+empty.classList.add("hidden");
+
+}
+
+
+filtered
+.sort(
+(a,b)=>
+new Date(b.registered_at)-
+new Date(a.registered_at)
+)
+.forEach(record=>{
+
+const fragment=
+document
+.getElementById("guest-row-template")
+.content
+.cloneNode(true);
+
+
+const row=
+fragment.querySelector(".guest-row");
+
+
+row.dataset.recordId=record.id;
+
+
+row.querySelector(
+".guest-row-name"
+).textContent=record.guest_name;
+
+
+row.querySelector(
+".guest-row-meta"
+).textContent=
+attendanceText(record.attendance_status)+
+" · "+
+formatDate(record.registered_at)+
+(record.ticket_used
+?" · دخول: "+formatDate(
+record.checked_in_at
+)
+:"");
+
+
+const status=
+row.querySelector(".guest-row-status");
+
+
+const button=
+row.querySelector(".guest-row-checkin");
+
+
+if(record.attendance_status==="declined"){
+
+status.textContent="اعتذر";
+
+status.className=
+"guest-row-status rounded-full bg-[#f4e8df] px-3 py-1 text-base font-bold text-[#805e45]";
+
+button.classList.add("hidden");
+
+}
+
+
+else if(record.ticket_used){
+
+status.textContent="تم الدخول";
+
+status.className=
+"guest-row-status rounded-full bg-[#e4f0e6] px-3 py-1 text-base font-bold text-[#3e674d]";
+
+button.classList.add("hidden");
+
+}
+
+
+else{
+
+status.textContent="بانتظار الوصول";
+
+status.className=
+"guest-row-status rounded-full bg-[#f8e8e9] px-3 py-1 text-base font-bold text-[#8d4351]";
+
+button.textContent="تم الدخول";
+
+button.onclick=()=>checkInRecord(record,button);
+
+}
+
+
+list.appendChild(fragment);
+
+});
+
+}
+
+
+/* =====================================
+   تسجيل دخول ضيف
+===================================== */
+
+function checkInRecord(record,control){
+
+if(
+record.attendance_status!=="attending" ||
+record.ticket_used
+)return;
+
+
+control.disabled=true;
+
+record.ticket_used=true;
+
+record.checked_in_at=
+new Date().toISOString();
+
+
+saveRecords();
+updateSharedRecord(record).catch(console.error);
+
+showHostMessage(
+"تم تسجيل دخول "+record.guest_name+" بنجاح.",
+"success"
+);
+showPopup("أهلاً بك 🌷","تم تسجيل دخول "+record.guest_name+" بنجاح.","success");
+
+}
+
+
+/* =====================================
+   تسجيل الدخول برقم التذكرة
+===================================== */
+
+function checkInByTicketId(ticketId){
+
+const message=
+document.getElementById("host-message");
+
+
+const normalized=
+ticketId.trim().toUpperCase();
+
+
+if(!normalized){
+
+setMessage(
+message,
+"اكتب معرّف التذكرة أولاً.",
+"error"
+);
+
+message.classList.remove("hidden");
+
+return;
+
+}
+
+
+const record=
+state.records.find(
+item=>
+item.ticket_id.toUpperCase()===normalized
+);
+
+
+if(!record){
+
+setMessage(
+message,
+"لم يتم العثور على تذكرة بهذا المعرّف.",
+"error"
+);
+
+message.classList.remove("hidden");
+
+return;
+
+}
+
+
+if(record.attendance_status!=="attending"){
+
+setMessage(
+message,
+"هذه التذكرة مرتبطة باعتذار عن الحضور.",
+"error"
+);
+
+message.classList.remove("hidden");
+
+return;
+
+}
+
+
+if(record.ticket_used){
+
+setMessage(
+message,
+"تم تسجيل دخول هذه التذكرة مسبقاً.",
+"error"
+);
+
+message.classList.remove("hidden");
+
+return;
+
+}
+
+
+record.ticket_used=true;
+
+record.checked_in_at=
+new Date().toISOString();
+
+
+saveRecords();
+
+
+document.getElementById(
+"checkin-code"
+).value="";
+
+
+setMessage(
+message,
+"تم تسجيل دخول الضيف بنجاح: "+record.guest_name,
+"success"
+);
+
+message.classList.remove("hidden");
+
+}
+
+
+/* =====================================
+   رسائل لوحة المضيف
+===================================== */
+
+function showHostMessage(text,type){
+
+const el=
+document.getElementById("host-message");
+
+setMessage(el,text,type);
+
+el.classList.remove("hidden");
+
+}
+
+
+/* =====================================
+   الماسح بالكاميرا
+===================================== */
+
+let scannerStream=null;
+let scannerActive=false;
+let scannerLocked=false;
+
+const scannerCanvas=
+document.createElement("canvas");
+
+const scannerContext=
+scannerCanvas.getContext(
+"2d",
+{
+willReadFrequently:true
+}
+);
+
+
+function stopScanner(){
+
+scannerActive=false;
+
+if(scannerStream){
+
+scannerStream
+.getTracks()
+.forEach(track=>track.stop());
+
+}
+
+scannerStream=null;
+
+document
+.getElementById("scanner-video")
+.classList.add("hidden");
+
+document
+.getElementById("scanner-frame")
+.classList.add("hidden");
+
+document
+.getElementById("scanner-start")
+.classList.remove("hidden");
+
+document
+.getElementById("scanner-stop")
+.classList.add("hidden");
+
+}
+
+
+async function processScannedTicket(ticketId){
+
+if(scannerLocked)return;
+
+scannerLocked=true;
+
+stopScanner();
+
+
+const resultBox=
+document.getElementById("scanner-result");
+
+
+const normalized=
+ticketId.trim().toUpperCase();
+
+
+const record=
+state.records.find(
+item=>
+item.ticket_id.toUpperCase()===normalized
+);
+
+
+resultBox.className=
+"mt-4 rounded-2xl px-5 py-5 text-center";
+
+resultBox.classList.remove("hidden");
+
+
+if(!record){
+
+resultBox.classList.add(
+"bg-[#f9e4e6]",
+"text-[#a44250]"
+);
+
+resultBox.textContent="باركود غير صالح أو غير مسجل.";
+showPopup("الباركود غير صالح","لم يتم العثور على هذا الباركود ضمن التذاكر المسجلة.","error");
+
+}
+
+
+else if(record.ticket_used){
+
+resultBox.classList.add(
+"bg-[#f9e4e6]",
+"text-[#a44250]"
+);
+
+resultBox.textContent=
+"تم استخدام هذا الباركود مسبقاً\n"+
+record.guest_name+
+" · "+
+formatDate(record.checked_in_at);
+showPopup("تم مسحه مسبقاً","هذا الباركود الخاص بـ "+record.guest_name+" تم استخدامه مسبقاً.","error");
+
+}
+
+
+else if(record.attendance_status!=="attending"){
+
+resultBox.classList.add(
+"bg-[#f9e4e6]",
+"text-[#a44250]"
+);
+
+resultBox.textContent="هذا الضيف اعتذر عن الحضور.";
+showPopup("لا يمكن الدخول","هذا الضيف اعتذر عن الحضور.","error");
+
+}
+
+
+else{
+
+record.ticket_used=true;
+
+record.checked_in_at=
+new Date().toISOString();
+
+saveRecords();
+updateSharedRecord(record).catch(console.error);
+showPopup("أهلاً بك 🌷","تم تسجيل دخول "+record.guest_name+" بنجاح.","success");
+
+
+resultBox.classList.add(
+"bg-[#e4f0e6]",
+"text-[#3e674d]"
+);
+
+resultBox.textContent=
+"تم الدخول بنجاح\n"+
+record.guest_name+
+" · "+
+formatDate(record.checked_in_at)+
+"\n"+
+record.ticket_id;
+
+}
+
+
+document
+.getElementById("scanner-new")
+.classList.remove("hidden");
+
+}
+
+
+/* =====================================
+   تشغيل الكاميرا
+===================================== */
+
+async function startScanner(){
+
+scannerLocked=false;
+
+try{
+
+if(
+!navigator.mediaDevices ||
+!navigator.mediaDevices.getUserMedia
+){
+
+throw new Error("camera unavailable");
+
+}
+
+
+scannerStream=
+await navigator.mediaDevices.getUserMedia({
+
+video:{
+facingMode:{
+ideal:"environment"
+}
+},
+
+audio:false
+
+});
+
+
+const video=
+document.getElementById("scanner-video");
+
+
+video.srcObject=
+scannerStream;
+
+video.classList.remove("hidden");
+
+document
+.getElementById("scanner-frame")
+.classList.remove("hidden");
+
+document
+.getElementById("scanner-start")
+.classList.add("hidden");
+
+document
+.getElementById("scanner-stop")
+.classList.remove("hidden");
+
+
+await video.play();
+
+
+scannerActive=true;
+
+
+document.getElementById(
+"scanner-status"
+).textContent=
+"وجّه الكاميرا إلى رمز QR للتذكرة.";
+
+
+const scan=()=>{
+
+if(!scannerActive)return;
+
+
+if(video.readyState>=2){
+
+scannerCanvas.width=
+video.videoWidth;
+
+scannerCanvas.height=
+video.videoHeight;
+
+
+scannerContext.drawImage(
+video,
+0,
+0,
+scannerCanvas.width,
+scannerCanvas.height
+);
+
+
+const image=
+scannerContext.getImageData(
+0,
+0,
+scannerCanvas.width,
+scannerCanvas.height
+);
+
+
+if(window.jsQR){
+
+const code=
+jsQR(
+image.data,
+image.width,
+image.height,
+{
+inversionAttempts:
+"dontInvert"
+}
+);
+
+
+if(code&&code.data){
+
+processScannedTicket(
+code.data
+);
+
+return;
+
+}
+
+}
+
+}
+
+
+requestAnimationFrame(scan);
+
+};
+
+
+scan();
+
+}
+
+catch(error){
+
+console.error(error);
+
+document.getElementById(
+"scanner-status"
+).textContent=
+"تعذر تشغيل الكاميرا. تأكدي أن الموقع يعمل عبر HTTPS واسمحي للمتصفح باستخدام الكاميرا.";
+
+}
+
+}
+
+
+/* =====================================
+   الأزرار
+===================================== */
+
+document
+.getElementById("start-rsvp")
+.addEventListener(
+"click",
+()=>{
+
+clearFormErrors();
+
+showView("rsvp-view");
+
+}
+);
+
+
+document
+.getElementById("back-welcome")
+.addEventListener(
+"click",
+()=>showView("welcome-view")
+);
+
+
+document
+.getElementById("declined-another")
+.addEventListener(
+"click",
+()=>{
+
+document
+.getElementById("rsvp-form")
+.reset();
+
+clearFormErrors();
+
+showView("rsvp-view");
+
+}
+);
+
+
+document
+.getElementById("ticket-another")
+.addEventListener(
+"click",
+()=>{
+
+document
+.getElementById("rsvp-form")
+.reset();
+
+clearFormErrors();
+
+showView("rsvp-view");
+
+}
+);
+
+
+document
+.getElementById("print-ticket")
+.addEventListener(
+"click",
+()=>window.print()
+);
+
+
+/* =====================================
+   لوحة المضيف
+===================================== */
+
+document
+.getElementById("host-toggle")
+.addEventListener(
+"click",
+()=>{
+
+const panel=
+document.getElementById("host-panel");
+
+panel.classList.toggle("hidden");
+
+if(!panel.classList.contains("hidden")){
+
+panel.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+
+renderGuestList();
+
+}
+
+}
+);
+
+
+/* =====================================
+   الماسح
+===================================== */
+
+document
+.getElementById("scanner-toggle")
+.addEventListener(
+"click",
+()=>{
+
+const scanner=
+document.getElementById("ticket-scanner");
+
+scanner.classList.toggle("hidden");
+
+}
+);
+
+
+document
+.getElementById("scanner-start")
+.addEventListener(
+"click",
+startScanner
+);
+
+
+document
+.getElementById("scanner-stop")
+.addEventListener(
+"click",
+stopScanner
+);
+
+
+document
+.getElementById("scanner-manual")
+.addEventListener(
+"click",
+()=>{
+
+processScannedTicket(
+document
+.getElementById("scanner-ticket-id")
+.value
+);
+
+}
+);
+
+
+document
+.getElementById("scanner-new")
+.addEventListener(
+"click",
+()=>{
+
+document
+.getElementById("scanner-result")
+.classList.add("hidden");
+
+document
+.getElementById("scanner-new")
+.classList.add("hidden");
+
+document
+.getElementById("scanner-ticket-id")
+.value="";
+
+startScanner();
+
+}
+);
+
+
+/* =====================================
+   البحث
+===================================== */
+
+document
+.getElementById("guest-search")
+.addEventListener(
+"input",
+renderGuestList
+);
+
+
+document
+.getElementById("refresh-records")
+.addEventListener(
+"click",
+renderGuestList
+);
+
+
+/* =====================================
+   تسجيل دخول يدوي
+===================================== */
+
+document
+.getElementById("checkin-form")
+.addEventListener(
+"submit",
+event=>{
+
+event.preventDefault();
+
+checkInByTicketId(
+document
+.getElementById("checkin-code")
+.value
+);
+
+}
+);
+
+
+/* =====================================
+   إرسال التسجيل
+===================================== */
+
+document
+.getElementById("rsvp-form")
+.addEventListener(
+"submit",
+event=>{
+
+event.preventDefault();
+
+clearFormErrors();
+
+
+const name=
+document
+.getElementById("guest-name")
+.value
+.trim();
+
+
+const normalizedName=normalizeName(name);
+
+const attendance=
+document.querySelector(
+"input[name='attendance']:checked"
+);
+
+
+let valid=true;
+
+
+if(normalizedName.length<3){
+
+displayError(
+"name-error",
+"يرجى إدخال الاسم الكامل كما يظهر في الدعوة."
+);
+
+valid=false;
+
+}
+
+
+
+if(!attendance){
+
+displayError(
+"attendance-error",
+"يرجى اختيار حالة الحضور قبل الإرسال."
+);
+
+valid=false;
+
+}
+
+
+if(!valid)return;
+
+
+/* منع تكرار الاسم */
+
+const existing=
+state.records.find(
+record=>
+normalizeName(record.guest_name).toLowerCase()===normalizedName.toLowerCase()
+);
+
+
+if(existing){
+
+if(existing.attendance_status==="attending"){
+
+renderTicket(existing,true);
+
+}else{
+
+document
+.getElementById("rsvp-form")
+.reset();
+
+showView("declined-view");
+
+}
+
+return;
+
+}
+
+
+const submitButton=
+document.getElementById("submit-rsvp");
+
+
+const originalText=
+submitButton.textContent;
+
+
+submitButton.disabled=true;
+
+submitButton.textContent=
+"جارٍ حفظ تأكيدك...";
+
+
+const record={
+
+id:
+crypto.randomUUID
+?crypto.randomUUID()
+:Date.now().toString(),
+
+guest_name:normalizedName,
+
+
+attendance_status:
+attendance.value,
+
+ticket_id:
+generateTicketId(),
+
+registered_at:
+new Date().toISOString(),
+
+ticket_used:false,
+
+checked_in_at:null
+
+};
+
+
+state.records.push(record);
+saveRecords();
+addSharedRecord(record).catch(err=>{
+  console.error(err);
+  showHostMessage("تم حفظ التسجيل على هذا الجهاز، لكن قاعدة البيانات المشتركة غير مفعلة بعد.","error");
+});
+
+
+submitButton.disabled=false;
+
+submitButton.textContent=
+originalText;
+
+
+document
+.getElementById("rsvp-form")
+.reset();
+
+
+if(record.attendance_status==="declined"){
+
+showView("declined-view");
+
+}else{
+
+renderTicket(record,false);
+
+}
+
+}
+);
+
+
+/* =====================================
+   تشغيل الموقع
+===================================== */
+
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
+
+if(window.lucide){
+
+lucide.createIcons();
+
+}
+
+loadRecords();
+initSharedDatabase().catch(()=>{});
+
+}
+);
+
+
+/* =====================================
+   تحديث تلقائي إذا تغيرت البيانات
+   في تبويب آخر من نفس الجهاز
+===================================== */
+
+window.addEventListener(
+"storage",
+event=>{
+
+if(event.key===STORAGE_KEY){
+
+loadRecords();
+
+}
+
+}
+);
+
+</script>
+
+
+<!-- نافذة النتائج -->
+<div id="app-modal" class="app-modal" role="dialog" aria-modal="true" aria-live="assertive">
+  <div class="app-modal-card">
+    <div id="app-modal-icon" class="app-modal-icon">✓</div>
+    <h3 id="app-modal-title">أهلاً بك</h3>
+    <p id="app-modal-text"></p>
+    <button id="app-modal-close" class="app-modal-close" type="button">حسناً</button>
+  </div>
+</div>
+
+</body>
+</html>
